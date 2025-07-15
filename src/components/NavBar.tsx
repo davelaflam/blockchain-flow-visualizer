@@ -99,7 +99,7 @@ const NavBar: React.FC = () => {
                   objectFit: 'contain',
                 }}
               />
-              {isMobile ? 'Blockchain Flow Visualizations' : 'Blockchain Flow Visualizations'}
+              {isMobile ? 'Blockchain Flow Visualizer' : 'Blockchain Flow Visualizer'}
             </Typography>
           </Box>
 

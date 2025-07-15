@@ -18,7 +18,7 @@ const HomePage: React.FC = () => {
   return (
     <MainLayout showHeaderBox={false}>
       <Typography variant="h4" component="h1" gutterBottom sx={{ mb: 4, fontWeight: 700, pt: { xs: 2, sm: 3, md: 4 } }}>
-        Blockchain Flow Visualizations
+        Blockchain Flow Visualizer
       </Typography>
 
       <Typography variant="body1" sx={{ mb: 4 }}>

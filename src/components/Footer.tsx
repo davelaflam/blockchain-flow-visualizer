@@ -36,7 +36,7 @@ const Footer: React.FC = () => {
         >
           <Box>
             <Typography variant="body2" color="text.secondary" align="center">
-              © {new Date().getFullYear()} Blockchain Flow Visualizations
+              © {new Date().getFullYear()} Blockchain Flow Visualizer
             </Typography>
           </Box>
         </Box>

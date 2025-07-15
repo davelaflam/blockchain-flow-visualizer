@@ -1,42 +1,42 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   <url>
-    <loc>https://blockchain-flow-visualizations.davelaflam.com/</loc>
+    <loc>https://blockchain-flow-visualizer.davelaflam.com/</loc>
     <changefreq>weekly</changefreq>
     <priority>1.0</priority>
   </url>
   <url>
-    <loc>https://blockchain-flow-visualizations.davelaflam.com/qar-token</loc>
+    <loc>https://blockchain-flow-visualizer.davelaflam.com/qar-token</loc>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://blockchain-flow-visualizations.davelaflam.com/qar-token/cron</loc>
+    <loc>https://blockchain-flow-visualizer.davelaflam.com/qar-token/cron</loc>
     <changefreq>weekly</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
-    <loc>https://blockchain-flow-visualizations.davelaflam.com/multisig/mint-usda</loc>
+    <loc>https://blockchain-flow-visualizer.davelaflam.com/multisig/mint-usda</loc>
     <changefreq>weekly</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
-    <loc>https://blockchain-flow-visualizations.davelaflam.com/multisig/burn-usda</loc>
+    <loc>https://blockchain-flow-visualizer.davelaflam.com/multisig/burn-usda</loc>
     <changefreq>weekly</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
-    <loc>https://blockchain-flow-visualizations.davelaflam.com/staking</loc>
+    <loc>https://blockchain-flow-visualizer.davelaflam.com/staking</loc>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://blockchain-flow-visualizations.davelaflam.com/cross-chain-bridge</loc>
+    <loc>https://blockchain-flow-visualizer.davelaflam.com/cross-chain-bridge</loc>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://blockchain-flow-visualizations.davelaflam.com/dex</loc>
+    <loc>https://blockchain-flow-visualizer.davelaflam.com/dex</loc>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>

@@ -4,6 +4,8 @@
   <img src="./src/assets/images/blockchain-flow-visualizer.webp" alt="Blockchain Flow Visualizer" width="500px" />
 </div>
 
+> **Explore complex blockchain processes through interactive visualizations and AI-powered explanations, making advanced concepts accessible whether you're a beginner or experienced developer.**
+
 ## Table of Contents
 
 - [Overview](#overview)

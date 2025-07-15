@@ -1,0 +1,83 @@
+/* Node animations */
+@keyframes pulse-glow {
+  0%, 100% {
+    transform: scale(1);
+    opacity: 0.9;
+  }
+  50% {
+    transform: scale(1.04);
+    opacity: 0.6;
+  }
+}
+
+.active-node {
+  position: relative;
+}
+
+.active-node::after {
+  content: '';
+  position: absolute;
+  top: -6px;
+  left: -6px;
+  right: -6px;
+  bottom: -6px;
+  background: var(--node-color);
+  border-radius: 18px;
+  z-index: -1;
+  opacity: 0;
+  animation: pulse-glow 1.8s ease-in-out infinite;
+  filter: blur(10px);
+  transform-origin: center;
+  transition: all 0.3s ease;
+}
+
+/* Edge animations */
+@keyframes dash {
+  from {
+    stroke-dashoffset: 0;
+  }
+  to {
+    stroke-dashoffset: -20; /* Increased offset for better visibility */
+  }
+}
+
+@keyframes pulse {
+  0% {
+    filter: drop-shadow(0 0 2px currentColor);
+    stroke-opacity: 0.8;
+  }
+  50% {
+    filter: drop-shadow(0 0 6px currentColor) brightness(1.5);
+    stroke-opacity: 1;
+  }
+  100% {
+    filter: drop-shadow(0 0 2px currentColor);
+    stroke-opacity: 0.8;
+  }
+}
+
+/* Base edge style */
+.animated-edge {
+  stroke-dasharray: 6, 6; /* Slightly larger dashes for better visibility */
+  stroke-width: 2px;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  shape-rendering: geometricPrecision;
+  fill: none;
+
+  /* Animation with vendor prefixes */
+  -webkit-animation: dash 0.8s linear infinite;
+  -moz-animation: dash 0.8s linear infinite;
+  -o-animation: dash 0.8s linear infinite;
+  animation: dash 0.8s linear infinite;
+}
+
+/* New active edge style */
+.animated-edge.new-active {
+  stroke-width: 2.5px;
+  /* Animation with vendor prefixes */
+  -webkit-animation: dash 0.8s linear infinite, pulse 1.2s ease-in-out infinite;
+  -moz-animation: dash 0.8s linear infinite, pulse 1.2s ease-in-out infinite;
+  -o-animation: dash 0.8s linear infinite, pulse 1.2s ease-in-out infinite;
+  animation: dash 0.8s linear infinite, pulse 1.2s ease-in-out infinite;
+}

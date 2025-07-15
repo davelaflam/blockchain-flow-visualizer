@@ -1,0 +1,128 @@
+
+body {
+  background: #181A20;
+  color: #fff;
+  font-family: 'Inter', 'Segoe UI', Arial, sans-serif;
+  margin: 0;
+  padding: 0;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+code {
+  font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New',
+    monospace;
+}
+
+button {
+  font-family: inherit;
+  font-size: 1rem;
+  cursor: pointer;
+  transition: background 0.2s, color 0.2s, opacity 0.2s;
+}
+
+button:disabled {
+  cursor: not-allowed;
+  opacity: 0.5;
+}
+
+/*::-webkit-scrollbar {*/
+/*  width: 8px;*/
+/*  background: #23272F;*/
+/*}*/
+/*::-webkit-scrollbar-thumb {*/
+/*  background: #444;*/
+/*  border-radius: 4px;*/
+/*}*/
+
+.container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 20px;
+}
+
+.card {
+  background-color: #1e1e1e;
+  border-radius: 8px;
+  padding: 16px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.flow-container {
+  /*height: 70vh;*/
+  margin: 20px 0;
+}
+
+.flow-control-bar {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  background: #181A20;
+  padding: 12px 24px;
+  border-radius: 16px;
+  margin: 24px auto;
+  max-width: 900px;
+  box-shadow: 0 2px 12px #0006;
+}
+
+@media (max-width: 768px) {
+  body, html {
+    padding: 0 !important;
+    margin: 0 !important;
+    overflow-x: hidden;
+  }
+  .app-main-row {
+    flex-direction: column !important;
+    gap: 0 !important;
+  }
+  .sidebar {
+    width: 100% !important;
+    margin-right: 0 !important;
+    margin-bottom: 16px !important;
+    min-height: unset !important;
+    border-radius: 0 0 12px 12px !important;
+  }
+  .flow-chart-container {
+    width: 100vw !important;
+    min-width: 0 !important;
+    overflow-x: auto !important;
+    border-radius: 0 !important;
+  }
+  .flow-control-bar {
+    flex-direction: column !important;
+    align-items: stretch !important;
+    gap: 10px !important;
+    max-width: 95vw !important;
+    padding: 12px 4px !important;
+    margin: 16px auto 12px auto !important;
+    box-shadow: 0 2px 12px #0006;
+  }
+  .flow-control-bar button {
+    width: 100%;
+    min-width: 0;
+    font-size: 18px;
+    padding: 14px 0;
+    margin: 0;
+  }
+}
+
+/* Ensure tooltips appear on top of all other elements */
+:root {
+  --rt-z-index: 9999 !important;
+}
+
+/* Additional styling for react-tooltip elements */
+[data-tooltip-id] {
+  position: relative;
+  z-index: 100;
+}
+
+[data-tooltip-content] {
+  z-index: 9999;
+}
+
+/* Target the tooltip elements directly */
+.react-tooltip {
+  z-index: 9999 !important;
+  pointer-events: auto !important;
+}

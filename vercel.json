@@ -1,0 +1,34 @@
+{
+  "buildCommand": "pnpm build",
+  "outputDirectory": "build",
+  "framework": "vite",
+  "rewrites": [
+    {
+      "source": "/api/anthropic/:path*",
+      "destination": "https://api.anthropic.com/:path*"
+    },
+    {
+      "source": "/v1/messages",
+      "destination": "https://api.anthropic.com/v1/messages"
+    }
+  ],
+  "headers": [
+    {
+      "source": "/api/anthropic/(.*)",
+      "headers": [
+        {
+          "key": "Access-Control-Allow-Origin",
+          "value": "*"
+        },
+        {
+          "key": "Access-Control-Allow-Methods",
+          "value": "GET, POST, PUT, DELETE, OPTIONS"
+        },
+        {
+          "key": "Access-Control-Allow-Headers",
+          "value": "X-Requested-With, Content-Type, Accept, x-api-key, anthropic-version"
+        }
+      ]
+    }
+  ]
+}

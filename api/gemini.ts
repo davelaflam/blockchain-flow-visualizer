@@ -1,11 +1,12 @@
 // Vercel serverless function — mirrors the dev-server proxy in vite.config.ts.
-// Forwards /api/gemini/* to https://generativelanguage.googleapis.com/v1beta/*
+// Forwards /api/gemini?model=<name> to
+// https://generativelanguage.googleapis.com/v1beta/models/<name>:generateContent
 // with the API key injected server-side, so it never reaches the browser.
 export default async function handler(req: any, res: any) {
-  const [pathname, query] = String(req.url ?? '').split('?');
-  const path = pathname.replace(/^\/api\/gemini\/?/, '').replace(/^\/+/, '');
+  const url = new URL(String(req.url ?? ''), 'http://localhost');
+  const model = url.searchParams.get('model') ?? 'gemini-3.5-flash-lite';
   const upstream = await fetch(
-    `https://generativelanguage.googleapis.com/v1beta/${path}${query ? `?${query}` : ''}`,
+    `https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(model)}:generateContent`,
     {
       method: req.method,
       headers: {

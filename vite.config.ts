@@ -12,7 +12,8 @@ export default defineConfig(({ mode }) => {
     '/api/openai': {
       target: 'https://api.openai.com',
       changeOrigin: true,
-      rewrite: path => path.replace(/^\/api\/openai/, '/v1'),
+      rewrite: path =>
+        path === '/api/openai' ? '/v1/chat/completions' : path.replace(/^\/api\/openai/, '/v1'),
       configure: proxy => {
         proxy.on('proxyReq', proxyReq => {
           if (serverEnv.OPENAI_API_KEY) {
@@ -24,7 +25,7 @@ export default defineConfig(({ mode }) => {
     '/api/anthropic': {
       target: 'https://api.anthropic.com',
       changeOrigin: true,
-      rewrite: path => path.replace(/^\/api\/anthropic/, '/v1'),
+      rewrite: path => (path === '/api/anthropic' ? '/v1/messages' : path.replace(/^\/api\/anthropic/, '/v1')),
       configure: proxy => {
         proxy.on('proxyReq', proxyReq => {
           if (serverEnv.CLAUDE_API_KEY) {
@@ -37,7 +38,13 @@ export default defineConfig(({ mode }) => {
     '/api/gemini': {
       target: 'https://generativelanguage.googleapis.com',
       changeOrigin: true,
-      rewrite: path => path.replace(/^\/api\/gemini/, '/v1beta'),
+      rewrite: path => {
+        const match = path.match(/^\/api\/gemini\?.*\bmodel=([^&]+)/);
+        if (match) {
+          return `/v1beta/models/${match[1]}:generateContent`;
+        }
+        return path.replace(/^\/api\/gemini/, '/v1beta');
+      },
       configure: proxy => {
         proxy.on('proxyReq', proxyReq => {
           if (serverEnv.GEMINI_API_KEY) {

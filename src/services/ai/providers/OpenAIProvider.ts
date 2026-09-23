@@ -15,7 +15,7 @@ export class OpenAIProvider implements AIProvider {
   constructor() {
     // Requests go through the dev-server proxy, which injects the API key
     // server-side (OPENAI_API_KEY in .env) so it never reaches the browser.
-    this.apiUrl = '/api/openai/chat/completions';
+    this.apiUrl = '/api/openai';
   }
 
   /**

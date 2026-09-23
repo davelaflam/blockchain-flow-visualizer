@@ -1,14 +1,13 @@
 // Vercel serverless function — mirrors the dev-server proxy in vite.config.ts.
-// Forwards /api/openai/* to https://api.openai.com/v1/* with the API key
-// injected server-side, so it never reaches the browser.
+// Forwards /api/anthropic to https://api.anthropic.com/v1/messages with the
+// API key injected server-side, so it never reaches the browser.
 export default async function handler(req: any, res: any) {
-  const [pathname, query] = String(req.url ?? '').split('?');
-  const path = pathname.replace(/^\/api\/openai\/?/, '').replace(/^\/+/, '');
-  const upstream = await fetch(`https://api.openai.com/v1/${path}${query ? `?${query}` : ''}`, {
+  const upstream = await fetch('https://api.anthropic.com/v1/messages', {
     method: req.method,
     headers: {
       'Content-Type': 'application/json',
-      Authorization: `Bearer ${process.env.OPENAI_API_KEY ?? ''}`,
+      'x-api-key': process.env.CLAUDE_API_KEY ?? '',
+      'anthropic-version': '2023-06-01',
     },
     body: req.method === 'GET' || req.method === 'HEAD' ? undefined : JSON.stringify(req.body),
   });

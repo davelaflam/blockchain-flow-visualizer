@@ -15,7 +15,7 @@ export class GeminiProvider implements AIProvider {
   constructor() {
     // Requests go through the dev-server proxy, which injects the API key
     // server-side (GEMINI_API_KEY in .env) so it never reaches the browser.
-    this.apiUrl = '/api/gemini/models';
+    this.apiUrl = '/api/gemini';
     this.maxOutputTokens = 4000;
   }
 
@@ -34,7 +34,7 @@ export class GeminiProvider implements AIProvider {
       }
 
       const response = await axios.post(
-        `${this.apiUrl}/${this.model}:generateContent`,
+        `${this.apiUrl}?model=${this.model}`,
         {
           contents: [
             {
@@ -139,7 +139,7 @@ export class GeminiProvider implements AIProvider {
     try {
       // Make a simple API call to test the key
       const response = await axios.post(
-        `${this.apiUrl}/${this.model}:generateContent`,
+        `${this.apiUrl}?model=${this.model}`,
         {
           contents: [
             {

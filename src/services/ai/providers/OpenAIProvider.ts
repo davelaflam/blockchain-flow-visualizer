@@ -5,18 +5,17 @@ import { logInfo } from '../../logger';
 import { AIExplanationResponse } from '../baseAiService';
 
 import { AIProvider } from './aiProvider';
-import { validateApiKey, handleApiError, removeMarkdownCodeBlocks, parseJsonResponse } from './aiProviderUtils';
+import { handleApiError, removeMarkdownCodeBlocks, parseJsonResponse } from './aiProviderUtils';
 
 export class OpenAIProvider implements AIProvider {
   name = 'OpenAI';
-  private apiKey: string;
+  readonly model = 'gpt-4o-mini'; // You can use 'gpt-4o' for better results if available
   private apiUrl: string;
-  private model: string;
 
   constructor() {
-    this.apiKey = env.VITE_OPENAI_API_KEY || '';
-    this.apiUrl = 'https://api.openai.com/v1/chat/completions';
-    this.model = 'gpt-3.5-turbo'; // You can use 'gpt-4' for better results if available
+    // Requests go through the dev-server proxy, which injects the API key
+    // server-side (OPENAI_API_KEY in .env) so it never reaches the browser.
+    this.apiUrl = '/api/openai/chat/completions';
   }
 
   /**
@@ -26,12 +25,9 @@ export class OpenAIProvider implements AIProvider {
    * @throws Error if the API key is invalid or if the API call fails
    */
   async callLLM(prompt: string): Promise<AIExplanationResponse> {
-    validateApiKey(this.apiKey, 'OpenAI');
-
     try {
-      // Log API key length only in development
       if (env.NODE_ENV === 'development') {
-        logInfo('Making OpenAI API call with key length:', this.apiKey.length);
+        logInfo('Making OpenAI API call with model:', this.model);
       }
 
       const response = await axios.post(
@@ -48,7 +44,6 @@ export class OpenAIProvider implements AIProvider {
         {
           headers: {
             'Content-Type': 'application/json',
-            Authorization: `Bearer ${this.apiKey}`,
           },
         }
       );
@@ -144,17 +139,6 @@ export class OpenAIProvider implements AIProvider {
    */
   async testApiKey(): Promise<{ success: boolean; message: string }> {
     try {
-      // Validate API key
-      try {
-        validateApiKey(this.apiKey, 'OpenAI');
-      } catch (error) {
-        return {
-          success: false,
-          message:
-            'API key is missing or invalid. Make sure you have added VITE_OPENAI_API_KEY to your .env file and restarted the development server.',
-        };
-      }
-
       // Make a simple API call to test the key
       const response = await axios.post(
         this.apiUrl,
@@ -169,7 +153,6 @@ export class OpenAIProvider implements AIProvider {
         {
           headers: {
             'Content-Type': 'application/json',
-            Authorization: `Bearer ${this.apiKey}`,
           },
         }
       );

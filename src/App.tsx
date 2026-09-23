@@ -7,7 +7,7 @@ import ErrorBoundary from 'components/ErrorBoundary';
 import Footer from 'components/Footer';
 import NavBar from 'components/NavBar';
 import { RouterConfig } from 'routes';
-import { logDebug, logInfo, logWarn, logError } from 'services/logger';
+import { logDebug, logInfo, logWarn, logError, sanitizeForLog } from 'services/logger';
 import { ThemeProvider } from 'theme/ThemeProvider';
 
 /**
@@ -24,7 +24,10 @@ const setupResizeObserverErrorHandling = () => {
       }
       const errorMessage = typeof args[0] === 'string' ? args[0] : 'Unknown error';
       logError('Unhandled error:', { message: errorMessage });
-      originalError.apply(console, args);
+      originalError.apply(
+        console,
+        args.map(arg => sanitizeForLog(arg))
+      );
     };
   }
 

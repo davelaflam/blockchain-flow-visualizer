@@ -1,7 +1,7 @@
 import { Box, FormControl, InputLabel, Select, MenuItem, SelectChangeEvent, Tooltip } from '@mui/material';
 import React, { useState, useEffect } from 'react';
 
-import { AIProviderFactory } from '../../../services/ai/providers/AIProviderFactory';
+import { AIProviderFactory, ensureApiKeyStatus } from '../../../services/ai/providers/AIProviderFactory';
 
 import { AIProviderSelectorProps } from './types/AIProviderSelectorTypes';
 import { AIProviderType, setCurrentProviderType, getCurrentProviderType } from './types/AIProviderTypes';
@@ -13,7 +13,23 @@ import { AIProviderType, setCurrentProviderType, getCurrentProviderType } from '
  */
 const AIProviderSelector: React.FC<AIProviderSelectorProps> = ({ onChange }) => {
   const [selectedProvider, setSelectedProvider] = useState<AIProviderType>(getCurrentProviderType());
-  const providers = AIProviderFactory.getInstance().getAllProviders();
+  const [providers, setProviders] = useState(() => AIProviderFactory.getInstance().getAllProviders());
+
+  /**
+   * Load the server-side API key status, then refresh the provider list so
+   * providers with configured keys become selectable.
+   */
+  useEffect(() => {
+    let mounted = true;
+    ensureApiKeyStatus().then(() => {
+      if (mounted) {
+        setProviders(AIProviderFactory.getInstance().getAllProviders());
+      }
+    });
+    return () => {
+      mounted = false;
+    };
+  }, []);
 
   /**
    * Handles the change event for the AI provider selector.
@@ -59,7 +75,7 @@ const AIProviderSelector: React.FC<AIProviderSelectorProps> = ({ onChange }) => 
   }, [providers, onChange]);
 
   return (
-    <Box sx={{ minWidth: 120, maxWidth: 200 }}>
+    <Box sx={{ minWidth: 170, maxWidth: 280 }}>
       <FormControl fullWidth size="small">
         <InputLabel id="ai-provider-select-label">AI Provider</InputLabel>
         <Select
@@ -68,6 +84,22 @@ const AIProviderSelector: React.FC<AIProviderSelectorProps> = ({ onChange }) => 
           value={selectedProvider}
           label="AI Provider"
           onChange={handleChange}
+          renderValue={selected => {
+            const provider = providers.find(p => p.type === selected);
+            return (
+              <Box
+                component="span"
+                sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', gap: 1.5 }}
+              >
+                <span>{provider?.name || selected}</span>
+                {provider && (
+                  <Box component="span" sx={{ fontSize: '0.7rem', color: 'text.secondary', fontFamily: 'monospace' }}>
+                    {provider.model}
+                  </Box>
+                )}
+              </Box>
+            );
+          }}
           sx={{
             backgroundColor: 'rgba(30, 41, 59, 0.7)',
             color: '#cbd5e1',
@@ -88,12 +120,27 @@ const AIProviderSelector: React.FC<AIProviderSelectorProps> = ({ onChange }) => 
                 },
               }}
             >
-              {provider.name}
-              {!provider.hasApiKey && (
-                <Box component="span" sx={{ ml: 1, fontSize: '0.75rem', color: 'text.disabled' }}>
-                  (API key not set)
+              <Box
+                sx={{
+                  display: 'flex',
+                  justifyContent: 'space-between',
+                  alignItems: 'baseline',
+                  width: '100%',
+                  gap: 2,
+                }}
+              >
+                <span>
+                  {provider.name}
+                  {!provider.hasApiKey && (
+                    <Box component="span" sx={{ ml: 1, fontSize: '0.75rem', color: 'text.disabled' }}>
+                      (API key not set)
+                    </Box>
+                  )}
+                </span>
+                <Box component="span" sx={{ fontSize: '0.7rem', color: 'text.secondary', fontFamily: 'monospace' }}>
+                  {provider.model}
                 </Box>
-              )}
+              </Box>
             </MenuItem>
           ))}
         </Select>

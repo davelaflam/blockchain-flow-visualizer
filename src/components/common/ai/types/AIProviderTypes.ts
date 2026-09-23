@@ -5,6 +5,7 @@ import { AIExplanationResponse } from './AIResponseTypes';
  */
 export interface AIProvider {
   name: string;
+  model: string;
   callLLM(prompt: string): Promise<AIExplanationResponse>;
   testApiKey(): Promise<{ success: boolean; message: string }>;
 }

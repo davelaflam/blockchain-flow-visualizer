@@ -312,14 +312,21 @@ To use the AI service, you need to configure API keys in the `.env` file:
 
 ```
 # OpenAI API Key
-VITE_OPENAI_API_KEY=your_openai_api_key
+OPENAI_API_KEY=your_openai_api_key
 
 # Google Gemini API Key
-VITE_OPENAI_API_KEY=your_gemini_api_key
+GEMINI_API_KEY=your_gemini_api_key
 
 # Anthropic Claude API Key
-VITE_OPENAI_API_KEY=your_claude_api_key
+CLAUDE_API_KEY=your_claude_api_key
 ```
+
+> **Security note:** These keys are intentionally **not** prefixed with `VITE_`.
+> They are read only by the Vite dev server, which injects them into proxied
+> API requests (`/api/openai`, `/api/gemini`, `/api/anthropic`). The keys never
+> reach the browser bundle — requests are sent unauthenticated to the local
+> proxy and the proxy adds the auth header server-side. For a production
+> deployment you still need a real backend that does the same thing.
 
 You can obtain API keys from:
 - OpenAI: https://platform.openai.com/
@@ -377,47 +384,33 @@ OpenAI's models are known for their strong reasoning capabilities and are well-s
 
 #### Gemini Provider
 
-The Gemini provider uses the `gemini-2.5-flash` model by default and handles various response formats:
+The Gemini provider uses the `gemini-3.5-flash-lite` model by default and handles various response formats:
 
 1. For most responses, the content is extracted from `candidate.content.parts[0].text`
 2. If the response doesn't include the "text" field in the "parts" array or has no parts array at all (which can happen with certain queries), the provider returns a default explanation
 
 #### Anthropic Claude Provider
 
-The Claude provider uses the `claude-3-opus` model by default. Claude models are particularly good at:
+The Claude provider uses the `claude-sonnet-4-5` model by default. Claude models are particularly good at:
 - Detailed technical explanations
 - Following complex instructions
 - Maintaining context over long conversations
 
 The provider handles various response formats and includes automatic retry logic for rate limits.
 
-### CORS Handling
+### CORS Handling and Server-Side API Keys
 
-The Claude API has CORS restrictions that prevent direct browser requests. To handle this:
+All provider APIs have CORS restrictions that prevent (or discourage) direct browser requests, and API keys must never ship in the browser bundle. To handle both, the Vite dev server proxies all provider requests and injects the auth headers server-side:
 
-1. A proxy is configured in `package.json` to forward requests to the Claude API:
-   ```json
-   "proxy": "https://api.anthropic.com"
-   ```
+- `/api/openai/*` → `https://api.openai.com/v1/*` (adds `Authorization: Bearer $OPENAI_API_KEY`)
+- `/api/gemini/*` → `https://generativelanguage.googleapis.com/v1beta/*` (adds `x-goog-api-key: $GEMINI_API_KEY`)
+- `/api/anthropic/*` → `https://api.anthropic.com/v1/*` (adds `x-api-key: $CLAUDE_API_KEY` and `anthropic-version`)
 
-2. The ClaudeProvider uses relative URLs that are proxied through the development server:
-   ```typescript
-   const apiUrl = process.env.NODE_ENV === 'development' 
-     ? `/v1/messages` // This will be handled by the proxy
-     : this.apiUrl;
-   ```
+Providers call the same-origin proxy paths (e.g. `/api/anthropic/messages`) with no auth headers of their own. The keys live in `.env` **without** the `VITE_` prefix, so they are loaded by `vite.config.ts` (server-side) and never bundled into client code.
 
-3. The required `anthropic-dangerous-direct-browser-access` header is included in all requests:
-   ```typescript
-   headers: {
-     'Content-Type': 'application/json',
-     'x-api-key': this.apiKey,
-     'anthropic-version': '2023-06-01',
-     'anthropic-dangerous-direct-browser-access': 'true'
-   }
-   ```
+The dev server also exposes `GET /api/ai-config`, which reports which providers have a key configured (`{"openai": true, "gemini": true, "claude": false}`) — the UI uses this to enable/disable providers without ever seeing key values.
 
-This setup works for development. For production, you should implement a proper backend proxy or serverless function to handle the requests.
+This setup works for development. For production, you should implement a proper backend proxy or serverless function that injects the same headers — a static production build has no proxy, so the app will fall back to hardcoded explanations.
 
 ### Environment Variables
 
@@ -437,10 +430,10 @@ To make the migration smoother, a compatibility layer has been created in `src/u
 ```typescript
 import env from 'src/utils/env';
 
-// Instead of: process.env.VITE_OPENAI_API_KEY
-const apiKey = env.VITE_OPENAI_API_KEY;
+// Instead of: process.env.VITE_USE_HARDCODED_EXPLANATIONS
+const useHardcoded = env.VITE_USE_HARDCODED_EXPLANATIONS;
 // or directly use the VITE_ version
-const apiKeyVite = env.VITE_OPENAI_API_KEY;
+const useHardcodedVite = env.VITE_USE_HARDCODED_EXPLANATIONS;
 
 // For NODE_ENV checks
 if (env.NODE_ENV === 'development') {
@@ -461,9 +454,9 @@ if (isDevelopment()) {
 ```typescript
 import { getEnv } from 'src/utils/env';
 
-const apiKey = getEnv('VITE_OPENAI_API_KEY');
+const useHardcoded = getEnv('VITE_USE_HARDCODED_EXPLANATIONS');
 // or
-const apiKeyVite = getEnv('VITE_OPENAI_API_KEY');
+const debug = getEnv('VITE_DEBUG');
 ```
 
 See `src/utils/env.example.ts` for more examples and a migration strategy.
@@ -522,11 +515,14 @@ This project can be easily deployed to Vercel. A `vercel.json` configuration fil
 3. **Configure environment variables**:
    - In the Vercel project settings, go to "Environment Variables"
    - Add the following variables as needed:
-     - `VITE_OPENAI_API_KEY` (for OpenAI integration)
-     - `VITE_GEMINI_API_KEY` (for Google Gemini integration)
-     - `VITE_CLAUDE_API_KEY` (for Anthropic Claude integration)
+     - `OPENAI_API_KEY` (for OpenAI integration — server-side only, not bundled)
+     - `GEMINI_API_KEY` (for Google Gemini integration — server-side only, not bundled)
+     - `CLAUDE_API_KEY` (for Anthropic Claude integration — server-side only, not bundled)
      - `VITE_USE_HARDCODED_EXPLANATIONS` (set to "true" to use hardcoded explanations)
      - `VITE_DEBUG` (set to "true" to enable debug logging)
+   - Note: On Vercel, the `api/` serverless functions inject these keys into
+     provider requests — mirroring the dev-server proxy. Do NOT re-add keys as
+     `VITE_` variables; that would bundle them into the public client build.
 
 4. **Deploy**:
    - Click "Deploy"

@@ -1,5 +1,5 @@
 import env from '../../../utils/env';
-import { logError, logInfo, logWarn } from '../../logger';
+import { logError, logInfo, logWarn, SENSITIVE_KEY_PATTERN, scrubSecrets } from '../../logger';
 import { AIExplanationResponse } from '../baseAiService';
 
 /**
@@ -201,11 +201,68 @@ export const recoverJsonResponse = (content: string, isTruncated = false): AIExp
 };
 
 /**
+ * Redacts credentials from an axios error in place before it is logged or rethrown,
+ * so API keys cannot leak through error objects that end up in the browser console,
+ * React error overlays, or uncaught-promise output.
+ * @param error The error object to sanitize
+ */
+const redactErrorSecrets = (error: any): void => {
+  if (!error || typeof error !== 'object') return;
+
+  const redactHeaders = (headers: any): void => {
+    if (!headers || typeof headers !== 'object') return;
+
+    const redact = (name: string) => {
+      if (typeof headers.set === 'function') {
+        headers.set(name, '[REDACTED]');
+      } else {
+        headers[name] = '[REDACTED]';
+      }
+    };
+
+    for (const name of Object.keys(headers)) {
+      if (SENSITIVE_KEY_PATTERN.test(name)) {
+        redact(name);
+      }
+    }
+
+    // Axios headers may not be enumerable; check the known auth headers explicitly
+    for (const name of ['Authorization', 'x-api-key', 'x-goog-api-key']) {
+      const current = typeof headers.get === 'function' ? headers.get(name) : headers[name];
+      if (typeof current === 'string' && current !== '[REDACTED]') {
+        redact(name);
+      }
+    }
+  };
+
+  for (const config of [error.config, error.response?.config]) {
+    if (!config || typeof config !== 'object') continue;
+    redactHeaders(config.headers);
+    if (typeof config.url === 'string') config.url = scrubSecrets(config.url);
+    if (typeof config.baseURL === 'string') config.baseURL = scrubSecrets(config.baseURL);
+  }
+
+  try {
+    if (typeof error.request?.responseURL === 'string') {
+      error.request.responseURL = scrubSecrets(error.request.responseURL);
+    }
+  } catch {
+    // responseURL is read-only on some request objects
+  }
+
+  if (typeof error.message === 'string') {
+    error.message = scrubSecrets(error.message);
+  }
+};
+
+/**
  * Handles API errors in a consistent way
  * @param error The error object
  * @param providerName The name of the provider for error messages
  */
 export const handleApiError = (error: any, providerName: string): void => {
+  redactErrorSecrets(error);
+
   if (env.NODE_ENV === 'development') {
     logError(`Error calling ${providerName} API:`, error);
 

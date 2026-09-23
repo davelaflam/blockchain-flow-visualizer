@@ -35,14 +35,22 @@ To use the AI service, you need to configure API keys in the `.env` file:
 
 ```
 # OpenAI API Key
-VITE_OPENAI_API_KEY=your_openai_api_key
+OPENAI_API_KEY=your_openai_api_key
 
 # Google Gemini API Key
-VITE_OPENAI_API_KEY=your_gemini_api_key
+GEMINI_API_KEY=your_gemini_api_key
 
 # Anthropic Claude API Key
-VITE_OPENAI_API_KEY=your_claude_api_key
+CLAUDE_API_KEY=your_claude_api_key
 ```
+
+> **Security note:** These keys are intentionally **not** prefixed with `VITE_`.
+> The Vite dev server loads them in `vite.config.ts` and injects them into
+> proxied requests (`/api/openai`, `/api/gemini`, `/api/anthropic`), so they
+> never reach the browser bundle. The client learns which providers are
+> configured via the `GET /api/ai-config` endpoint, which returns only
+> booleans. For production, implement a real backend that injects the same
+> headers.
 
 You can obtain API keys from:
 - OpenAI: https://platform.openai.com/
@@ -111,14 +119,14 @@ OpenAI's models are known for their strong reasoning capabilities and are well-s
 
 ### Gemini Provider
 
-The Gemini provider uses the `gemini-2.5-flash` model by default and handles various response formats:
+The Gemini provider uses the `gemini-3.5-flash-lite` model by default and handles various response formats:
 
 1. For most responses, the content is extracted from `candidate.content.parts[0].text`
 2. If the response doesn't include the "text" field in the "parts" array or has no parts array at all (which can happen with certain queries), the provider returns a default explanation
 
 ### Anthropic Claude Provider
 
-The Claude provider uses the `claude-3-opus` model by default. Claude models are particularly good at:
+The Claude provider uses the `claude-sonnet-4-5` model by default. Claude models are particularly good at:
 - Detailed technical explanations
 - Following complex instructions
 - Maintaining context over long conversations

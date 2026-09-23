@@ -1,9 +1,41 @@
-import env from '../../../utils/env';
-
 import { AIProvider, AIProviderType, getCurrentProviderType } from './aiProvider';
 import { ClaudeProvider } from './ClaudeProvider';
 import { GeminiProvider } from './GeminiProvider';
 import { OpenAIProvider } from './OpenAIProvider';
+
+/**
+ * Which providers have an API key configured on the dev server. Keys are
+ * injected server-side by the Vite proxy, so the client only knows whether
+ * a key exists — never its value. Populated by ensureApiKeyStatus().
+ */
+export interface ApiKeyStatus {
+  openai: boolean;
+  gemini: boolean;
+  claude: boolean;
+}
+
+let apiKeyStatus: ApiKeyStatus = { openai: false, gemini: false, claude: false };
+let apiKeyStatusPromise: Promise<void> | null = null;
+
+/**
+ * Fetches the server-side API key status from the dev-server's /api/ai-config
+ * endpoint. Cached — subsequent calls reuse the same request. If the endpoint
+ * is unavailable (e.g. a static production build with no backend), all
+ * providers report no key and the app falls back to hardcoded explanations.
+ */
+export const ensureApiKeyStatus = (): Promise<void> => {
+  if (!apiKeyStatusPromise) {
+    apiKeyStatusPromise = fetch('/api/ai-config')
+      .then(res => (res.ok ? res.json() : Promise.reject(res.status)))
+      .then((status: ApiKeyStatus) => {
+        apiKeyStatus = status;
+      })
+      .catch(() => {
+        // Endpoint unavailable — leave all statuses as false
+      });
+  }
+  return apiKeyStatusPromise;
+};
 
 export class AIProviderFactory {
   private static instance: AIProviderFactory;
@@ -56,20 +88,12 @@ export class AIProviderFactory {
 
   /**
    * Check if the given provider type has a valid API key.
+   * Reads the status last fetched by ensureApiKeyStatus() — call that first.
    * @param {AIProviderType} type - The type of the AI provider.
    * @return {boolean} True if the provider has a valid API key, false otherwise.
    */
   public hasValidApiKey(type: AIProviderType): boolean {
-    switch (type) {
-      case AIProviderType.OPENAI:
-        return !!env.VITE_OPENAI_API_KEY && env.VITE_OPENAI_API_KEY !== '';
-      case AIProviderType.GEMINI:
-        return !!env.VITE_GEMINI_API_KEY && env.VITE_GEMINI_API_KEY !== '';
-      case AIProviderType.CLAUDE:
-        return !!env.VITE_CLAUDE_API_KEY && env.VITE_CLAUDE_API_KEY !== '';
-      default:
-        return false;
-    }
+    return apiKeyStatus[type] ?? false;
   }
 
   /**
@@ -82,14 +106,29 @@ export class AIProviderFactory {
   }
 
   /**
-   * Get all available AI providers with their names and API key status.
-   * @return {Array<{ type: AIProviderType; name: string; hasApiKey: boolean }>} List of providers.
+   * Get all available AI providers with their names, models, and API key status.
+   * @return {Array<{ type: AIProviderType; name: string; model: string; hasApiKey: boolean }>} List of providers.
    */
-  public getAllProviders(): { type: AIProviderType; name: string; hasApiKey: boolean }[] {
+  public getAllProviders(): { type: AIProviderType; name: string; model: string; hasApiKey: boolean }[] {
     return [
-      { type: AIProviderType.OPENAI, name: 'OpenAI', hasApiKey: this.hasValidApiKey(AIProviderType.OPENAI) },
-      { type: AIProviderType.GEMINI, name: 'Gemini', hasApiKey: this.hasValidApiKey(AIProviderType.GEMINI) },
-      { type: AIProviderType.CLAUDE, name: 'Claude', hasApiKey: this.hasValidApiKey(AIProviderType.CLAUDE) },
+      {
+        type: AIProviderType.OPENAI,
+        name: 'OpenAI',
+        model: this.getProvider(AIProviderType.OPENAI).model,
+        hasApiKey: this.hasValidApiKey(AIProviderType.OPENAI),
+      },
+      {
+        type: AIProviderType.GEMINI,
+        name: 'Gemini',
+        model: this.getProvider(AIProviderType.GEMINI).model,
+        hasApiKey: this.hasValidApiKey(AIProviderType.GEMINI),
+      },
+      {
+        type: AIProviderType.CLAUDE,
+        name: 'Claude',
+        model: this.getProvider(AIProviderType.CLAUDE).model,
+        hasApiKey: this.hasValidApiKey(AIProviderType.CLAUDE),
+      },
     ];
   }
 }

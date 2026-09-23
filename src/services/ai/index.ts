@@ -8,8 +8,8 @@ import { getGovernanceAIExplanation } from './governanceAiService';
 import { getLendingAIExplanation } from './lendingAiService';
 import { getMultisigBurningAIExplanation } from './multisigBurningAiService';
 import { getMultisigMintingAIExplanation } from './multisigMintingAiService';
-import { AIProviderType, getCurrentProviderType } from './providers/aiProvider';
-import { currentProviderHasValidApiKey } from './providers/AIProviderFactory';
+import { getCurrentProviderType } from './providers/aiProvider';
+import { currentProviderHasValidApiKey, ensureApiKeyStatus } from './providers/AIProviderFactory';
 import { getQarTokenAIExplanation } from './qarTokenAiService';
 import { getQarTokenCronAIExplanation } from './qarTokenCronAiService';
 import { getStakingAIExplanation } from './stakingAiService';
@@ -28,44 +28,19 @@ export const getAIExplanation = async (
   useHardcoded: boolean = false,
   defaultDescription?: string
 ): Promise<AIExplanationResponse> => {
+  // Make sure we know which providers have server-side API keys before
+  // deciding whether to call an LLM or fall back to hardcoded explanations
+  await ensureApiKeyStatus();
+
   // Simulate API call delay for consistent UX
   await new Promise(resolve => setTimeout(resolve, 300));
 
   // Debug logs are removed in production
   if (env.NODE_ENV === 'development') {
-    // Check if hardcoded explanations will be used based on all conditions
-    const willUseHardcoded = !currentProviderHasValidApiKey() || env.VITE_USE_HARDCODED_EXPLANATIONS === 'true';
-
-    // Get the current provider type
-    const currentProviderType = getCurrentProviderType();
-
-    // Get the appropriate key length based on the current provider
-    let keyLength = 0;
-    let keyName = '';
-
-    switch (currentProviderType) {
-      case AIProviderType.OPENAI:
-        keyLength = env.VITE_OPENAI_API_KEY?.length || 0;
-        keyName = 'openAIKeyLength';
-        break;
-      case AIProviderType.GEMINI:
-        keyLength = env.VITE_GEMINI_API_KEY?.length || 0;
-        keyName = 'geminiKeyLength';
-        break;
-      case AIProviderType.CLAUDE:
-        keyLength = env.VITE_CLAUDE_API_KEY?.length || 0;
-        keyName = 'claudeKeyLength';
-        break;
-      default:
-        keyLength = env.VITE_OPENAI_API_KEY?.length || 0;
-        keyName = 'openAIKeyLength';
-    }
-
     logInfo('AI Service - Environment check:', {
       hasCurrentProviderApiKey: currentProviderHasValidApiKey(),
-      currentProvider: currentProviderType,
-      [keyName]: keyLength,
-      useHardcoded: willUseHardcoded,
+      currentProvider: getCurrentProviderType(),
+      useHardcoded: !currentProviderHasValidApiKey() || env.VITE_USE_HARDCODED_EXPLANATIONS === 'true',
     });
   }
 

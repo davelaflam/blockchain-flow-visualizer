@@ -3,6 +3,11 @@
  *
  * This file demonstrates how to use the env utility to access environment variables
  * in Vite.
+ *
+ * NOTE: AI provider API keys are NOT accessible here. They use non-VITE_
+ * variable names (OPENAI_API_KEY, GEMINI_API_KEY, CLAUDE_API_KEY) and are read
+ * only by the Vite dev server, which injects them into proxied requests.
+ * They never reach the browser bundle.
  */
 
 // Import the env utility
@@ -17,10 +22,8 @@ function example1() {
     logInfo('Running in development mode');
   }
 
-  // Access environment variables
-  const openAiKey = env.VITE_OPENAI_API_KEY;
-  const geminiKey = env.VITE_GEMINI_API_KEY;
-  const claudeKey = env.VITE_CLAUDE_API_KEY;
+  // Access client-side environment variables (must start with VITE_)
+  const useHardcoded = env.VITE_USE_HARDCODED_EXPLANATIONS;
 }
 
 // Example 2: Using the isDevelopment helper
@@ -34,9 +37,8 @@ function example2() {
 // Example 3: Using the getEnv function directly
 function example3() {
   // You can also access environment variables directly with getEnv
-  const openAiKey = getEnv('VITE_OPENAI_API_KEY');
-  const geminiKey = getEnv('VITE_GEMINI_API_KEY');
-  const claudeKey = getEnv('VITE_CLAUDE_API_KEY');
+  const useHardcoded = getEnv('VITE_USE_HARDCODED_EXPLANATIONS');
+  const debug = getEnv('VITE_DEBUG');
 }
 
 /**
@@ -46,4 +48,7 @@ function example3() {
  * 2. Use the env object to access variables (env.VITE_VARIABLE_NAME)
  * 3. For NODE_ENV checks, consider using the isDevelopment helper
  * 4. Remember that all client-side environment variables must start with VITE_
+ * 5. Secrets (API keys, tokens) must NOT use the VITE_ prefix — anything with
+ *    that prefix is bundled into client code. The AI provider keys are handled
+ *    server-side by the dev proxy for this reason.
  */

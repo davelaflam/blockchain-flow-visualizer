@@ -5,18 +5,17 @@ import { logInfo, logWarn } from '../../logger';
 import { AIExplanationResponse } from '../baseAiService';
 
 import { AIProvider } from './aiProvider';
-import { validateApiKey, handleApiError, removeMarkdownCodeBlocks, parseJsonResponse } from './aiProviderUtils';
+import { handleApiError, removeMarkdownCodeBlocks, parseJsonResponse } from './aiProviderUtils';
 
 export class GeminiProvider implements AIProvider {
   name = 'Gemini';
-  private apiKey: string;
+  readonly model = 'gemini-3.5-flash-lite';
   private apiUrl: string;
-  private model: string;
 
   constructor() {
-    this.apiKey = env.VITE_GEMINI_API_KEY || '';
-    this.apiUrl = 'https://generativelanguage.googleapis.com/v1beta/models';
-    this.model = 'gemini-2.5-flash-lite-preview-06-17'; // gemini-2.5-flash
+    // Requests go through the dev-server proxy, which injects the API key
+    // server-side (GEMINI_API_KEY in .env) so it never reaches the browser.
+    this.apiUrl = '/api/gemini/models';
     this.maxOutputTokens = 4000;
   }
 
@@ -29,16 +28,13 @@ export class GeminiProvider implements AIProvider {
    * @throws Error if the API key is invalid or if the API call fails
    */
   async callLLM(prompt: string): Promise<AIExplanationResponse> {
-    validateApiKey(this.apiKey, 'Gemini');
-
     try {
-      // Log API key length only in development
       if (env.NODE_ENV === 'development') {
-        logInfo('Making Gemini API call with key length:', this.apiKey.length);
+        logInfo('Making Gemini API call with model:', this.model);
       }
 
       const response = await axios.post(
-        `${this.apiUrl}/${this.model}:generateContent?key=${this.apiKey}`,
+        `${this.apiUrl}/${this.model}:generateContent`,
         {
           contents: [
             {
@@ -141,20 +137,9 @@ export class GeminiProvider implements AIProvider {
    */
   async testApiKey(): Promise<{ success: boolean; message: string }> {
     try {
-      // Validate API key
-      try {
-        validateApiKey(this.apiKey, 'Gemini');
-      } catch (error) {
-        return {
-          success: false,
-          message:
-            'API key is missing or invalid. Make sure you have added VITE_GEMINI_API_KEY to your .env file and restarted the development server.',
-        };
-      }
-
       // Make a simple API call to test the key
       const response = await axios.post(
-        `${this.apiUrl}/${this.model}:generateContent?key=${this.apiKey}`,
+        `${this.apiUrl}/${this.model}:generateContent`,
         {
           contents: [
             {

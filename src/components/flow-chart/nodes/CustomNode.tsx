@@ -218,7 +218,6 @@ const CustomNode: React.FC<CustomNodeProps> = ({ id, data, selected, nodeHandles
         arrow
         enterDelay={300}
         PopperProps={{
-          disablePortal: true,
           modifiers: [{ name: 'offset', options: { offset: [0, 8] } }],
         }}
         componentsProps={{
@@ -264,7 +263,6 @@ const CustomNode: React.FC<CustomNodeProps> = ({ id, data, selected, nodeHandles
           arrow
           enterDelay={100}
           PopperProps={{
-            disablePortal: true,
             modifiers: [{ name: 'offset', options: { offset: [0, 8] } }],
           }}
         >
@@ -348,7 +346,6 @@ const CustomNode: React.FC<CustomNodeProps> = ({ id, data, selected, nodeHandles
           arrow
           enterDelay={100}
           PopperProps={{
-            disablePortal: true,
             modifiers: [{ name: 'offset', options: { offset: [0, 8] } }],
           }}
           componentsProps={{

@@ -2,8 +2,9 @@ import { AIExplanationResponse } from '../../components/common/ai/types/AIRespon
 import env from '../../utils/env';
 import { logError } from '../logger';
 
+import { AIProviderType, getCurrentProviderType } from './providers/aiProvider';
 import { callCurrentProvider } from './providers/AIProviderFactory';
-import { AIProviderFactory } from './providers/AIProviderFactory';
+import { AIProviderFactory, ensureApiKeyStatus } from './providers/AIProviderFactory';
 
 export type { AIExplanationResponse };
 
@@ -14,6 +15,7 @@ export type { AIExplanationResponse };
  * @throws Error if the API call fails or if the API key is invalid
  */
 export const callOpenAI = async (prompt: string): Promise<AIExplanationResponse> => {
+  await ensureApiKeyStatus();
   try {
     return await callCurrentProvider(prompt);
   } catch (error) {
@@ -31,9 +33,22 @@ export const callOpenAI = async (prompt: string): Promise<AIExplanationResponse>
  * a success flag and a descriptive message about the test result
  */
 export const testOpenAIKey = async (): Promise<{ success: boolean; message: string }> => {
+  await ensureApiKeyStatus();
   try {
-    const provider = AIProviderFactory.getInstance().getProvider();
-    return await provider.testApiKey();
+    const factory = AIProviderFactory.getInstance();
+    const providerType = getCurrentProviderType();
+    if (!factory.hasValidApiKey(providerType)) {
+      const envVar = {
+        [AIProviderType.OPENAI]: 'OPENAI_API_KEY',
+        [AIProviderType.GEMINI]: 'GEMINI_API_KEY',
+        [AIProviderType.CLAUDE]: 'CLAUDE_API_KEY',
+      }[providerType];
+      return {
+        success: false,
+        message: `No API key configured. Add ${envVar} to your .env file and restart the development server.`,
+      };
+    }
+    return await factory.getProvider().testApiKey();
   } catch (error: any) {
     if (env.NODE_ENV === 'development') {
       logError('Error testing API key:', error);

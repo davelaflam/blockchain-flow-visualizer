@@ -8,6 +8,10 @@ import { flowNodes, flowEdges, nodeHandles } from './flowLayout';
 import { stepHighlightMap } from './stepMap';
 import { crossChainBridgeSteps } from './steps';
 
+const crossChainBridgeEdgeTypes = {
+  releaseTokensEdge: ReleaseTokensEdge,
+};
+
 const CrossChainBridgeFlowChart: React.FC = () => {
   const storeState = useCrossChainBridgeStore();
 
@@ -19,9 +23,7 @@ const CrossChainBridgeFlowChart: React.FC = () => {
       steps={crossChainBridgeSteps}
       nodeHandles={nodeHandles}
       useStore={storeState}
-      edgeTypes={{
-        releaseTokensEdge: ReleaseTokensEdge,
-      }}
+      edgeTypes={crossChainBridgeEdgeTypes}
     />
   );
 };

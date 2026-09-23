@@ -55,8 +55,19 @@ const isTabletDevice = () => {
  * FlowChartComponent is a React component that renders a flow chart using React Flow.
  * It supports dynamic updates, zoom controls, and step-based highlighting.
  */
+const DEFAULT_EDGE_TYPES: EdgeTypes = {};
+
 const FlowChartComponent = forwardRef<FlowChartHandle, FlowChartComponentProps>((props, ref) => {
-  const { flowNodes, flowEdges, steps, nodeHandles, stepHighlightMap, useStore, edgeTypes = {}, onInit } = props;
+  const {
+    flowNodes,
+    flowEdges,
+    steps,
+    nodeHandles,
+    stepHighlightMap,
+    useStore,
+    edgeTypes = DEFAULT_EDGE_TYPES,
+    onInit,
+  } = props;
 
   // Use a ref to store the previous step to detect changes
   const prevStepRef = useRef(0);

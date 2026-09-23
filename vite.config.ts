@@ -16,6 +16,10 @@ export default defineConfig(({ mode }) => {
         path === '/api/openai' ? '/v1/chat/completions' : path.replace(/^\/api\/openai/, '/v1'),
       configure: proxy => {
         proxy.on('proxyReq', proxyReq => {
+          // Strip browser-identifying headers so upstreams don't treat the
+          // request as a direct browser call (Anthropic rejects those).
+          proxyReq.removeHeader('origin');
+          proxyReq.removeHeader('referer');
           if (serverEnv.OPENAI_API_KEY) {
             proxyReq.setHeader('Authorization', `Bearer ${serverEnv.OPENAI_API_KEY}`);
           }
@@ -28,6 +32,8 @@ export default defineConfig(({ mode }) => {
       rewrite: path => (path === '/api/anthropic' ? '/v1/messages' : path.replace(/^\/api\/anthropic/, '/v1')),
       configure: proxy => {
         proxy.on('proxyReq', proxyReq => {
+          proxyReq.removeHeader('origin');
+          proxyReq.removeHeader('referer');
           if (serverEnv.CLAUDE_API_KEY) {
             proxyReq.setHeader('x-api-key', serverEnv.CLAUDE_API_KEY);
           }
@@ -47,6 +53,8 @@ export default defineConfig(({ mode }) => {
       },
       configure: proxy => {
         proxy.on('proxyReq', proxyReq => {
+          proxyReq.removeHeader('origin');
+          proxyReq.removeHeader('referer');
           if (serverEnv.GEMINI_API_KEY) {
             proxyReq.setHeader('x-goog-api-key', serverEnv.GEMINI_API_KEY);
           }

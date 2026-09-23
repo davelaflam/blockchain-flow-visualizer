@@ -2,8 +2,9 @@
 // Forwards /api/anthropic/* to https://api.anthropic.com/v1/* with the API key
 // injected server-side, so it never reaches the browser.
 export default async function handler(req: any, res: any) {
-  const path = ([] as string[]).concat(req.query.path ?? []).join('/');
-  const upstream = await fetch(`https://api.anthropic.com/v1/${path}`, {
+  const [pathname, query] = String(req.url ?? '').split('?');
+  const path = pathname.replace(/^\/api\/anthropic\/?/, '');
+  const upstream = await fetch(`https://api.anthropic.com/v1/${path}${query ? `?${query}` : ''}`, {
     method: req.method,
     headers: {
       'Content-Type': 'application/json',

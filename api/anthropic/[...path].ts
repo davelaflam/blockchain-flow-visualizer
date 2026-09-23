@@ -3,7 +3,7 @@
 // injected server-side, so it never reaches the browser.
 export default async function handler(req: any, res: any) {
   const [pathname, query] = String(req.url ?? '').split('?');
-  const path = pathname.replace(/^\/api\/anthropic\/?/, '');
+  const path = pathname.replace(/^\/api\/anthropic\/?/, '').replace(/^\/+/, '');
   const upstream = await fetch(`https://api.anthropic.com/v1/${path}${query ? `?${query}` : ''}`, {
     method: req.method,
     headers: {

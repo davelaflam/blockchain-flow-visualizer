@@ -3,7 +3,7 @@
 // with the API key injected server-side, so it never reaches the browser.
 export default async function handler(req: any, res: any) {
   const [pathname, query] = String(req.url ?? '').split('?');
-  const path = pathname.replace(/^\/api\/gemini\/?/, '');
+  const path = pathname.replace(/^\/api\/gemini\/?/, '').replace(/^\/+/, '');
   const upstream = await fetch(
     `https://generativelanguage.googleapis.com/v1beta/${path}${query ? `?${query}` : ''}`,
     {
